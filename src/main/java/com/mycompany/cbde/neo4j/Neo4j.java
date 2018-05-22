@@ -25,8 +25,7 @@ public class Neo4j {
         session.run("MATCH (a) DETACH DELETE a");
     }
     
-    
-    //create a line item node l_returnflag l_linestatus l_quantity l_extendedprice l_discount L_tax l_shipdate l_orderkey
+     //create a line item node l_returnflag l_linestatus l_quantity l_extendedprice l_discount L_tax l_shipdate l_orderkey
     static void create_lineitem(Session session, String identifier, String l_returnflag, String l_linestatus, int l_quantity, int l_extendedprice, int l_discount, int l_tax, int l_shipdate, int l_orderkeyint, int l_suppkey) {
         String s =  "CREATE (" + identifier + ":LineItem {orderkey: " + l_orderkeyint +
         		", suppkey: " + l_suppkey + ", returnflag: '" + l_returnflag + "', quantity: " + l_quantity +
@@ -88,7 +87,7 @@ public class Neo4j {
     //create customer C_mktsegment c_custkey
     static void create_customer(Session session, String identifier, int c_custkey, int c_nationkey, String c_mktsegment) {
         String s =  "CREATE (" + identifier + ":Customer {custkey: " + 
-                    c_custkey + ", c_nationkey:" + c_nationkey +", mktsegment: '" + c_mktsegment + "'})";
+                    c_custkey + ", nationkey:" + c_nationkey +", mktsegment: '" + c_mktsegment + "'})";
         System.out.println(s);
         session.run(s,parameters("custkey",c_custkey,"nationkey",c_nationkey));
     }
@@ -129,11 +128,13 @@ public class Neo4j {
     }
     
     static void create_join_supplier_lineitem(Session session, long l_suppkey, long s_suppkey) {
-    	String s =  "MATCH (li:Lineitem {suppkey: $l_suppkey}), (s:Supplier {suppkey: $s_suppkey})" +
+    	String s =  "MATCH (li:LineItem {suppkey: $l_suppkey}), (s:Supplier {suppkey: $s_suppkey})" +
                     "CREATE (li)-[:has]->(s)";
         System.out.println(s);
         session.run(s,parameters("l_suppkey",l_suppkey,"s_suppkey",s_suppkey));
     }
+    
+ 
     
     static void create_join_lineitem_order(Session session, long l_orderkey, long o_orderkey) {
     	String s =  "MATCH (li:LineItem {orderkey: $l_orderkey}), (o:Order {orderkey: $o_orderkey})" +
@@ -175,10 +176,10 @@ public class Neo4j {
         create_region(session, "r3", 3, "region3");
         create_region(session, "r4", 4, "region4");
         
-        create_nation(session, "n1", 1, 1, "nation_name_1");
-        create_nation(session, "n2", 1, 2, "nation_name_2");
-        create_nation(session, "n3", 3, 3, "nation_name_3");
-        create_nation(session, "n4", 4, 4, "nation_name_4");
+        create_region(session, "r1", 1, "region1");
+        create_region(session, "r2", 2, "region1");
+        create_region(session, "r3", 3, "region1");
+        create_region(session, "r4", 4, "region1");
         
         create_partsupp(session, "ps1", 1, 1, 20);
         create_partsupp(session, "ps2", 2, 2, 30);
@@ -353,6 +354,39 @@ public class Neo4j {
         }
         
     }
+
+	static public void query4(Session session, String region, long date, long dateInterval) {
+		        String query =       		
+		        		"MATCH (li:LineItem)-[:has]->(o1:Order)-[:has]->(c1:Customer)-[:has]->(n1:Nation)-[:has]->(r1:Region)" +
+		                "MATCH (li:LineItem)-[:has]->(s1:Supplier)-[:has]->(n1:Nation)-[:has]->(r1:Region) " +
+		                        " WHERE " +
+		        				"     r1.name = '" + region + "' AND " + 
+		                       "     o1.orderdate >= " + date + " AND " +
+		        				"     o1.orderdate  < " + dateInterval + " AND " +		
+		                        "     c1.custkey = o1.custkey AND " +
+		                        " 	  li.orderkey = o1.orderkey AND " +
+		                        "     c1.nationkey = n1.nationkey AND " +	
+		                        "     li.suppkey = s1.suppkey AND " +
+		                        "     s1.nationkey = n1.nationkey AND " +
+		                        "     n1.regionkey = r1.regionkey " +
+		                        " RETURN " +
+		                        "     n1.name  AS n_name, " +
+		                         "    SUM(li.extendedPrice*(1-li.discount)) AS revenue " +
+		                         " ORDER BY " +
+		                         "    revenue DESC ";
+		        	
+		                       
+		        
+		        
+		        StatementResult result = session.run(query);
+		     
+		        System.out.println("QUERY 4: " + query);
+		        
+		        while(result.hasNext()) {
+		            System.out.println(result.next());
+		        }
+		        
+		    }
     
     public static void main(String[] args) {
 
@@ -370,6 +404,9 @@ public class Neo4j {
 
         query3(session,20190526,20170526,"aa");
         System.out.println("FIN3");
+
+  	query4(session,"region1",2000000,20190526);
+        System.out.println("FIN4");
 
     }
     
