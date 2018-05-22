@@ -136,7 +136,7 @@ public class Neo4j {
     }
     
     static void create_join_lineitem_order(Session session, long l_orderkey, long o_orderkey) {
-    	String s =  "MATCH (li:Lineitem {orderkey: $l_orderkey}), (o:Order {orderkey: $o_orderkey})" +
+    	String s =  "MATCH (li:LineItem {orderkey: $l_orderkey}), (o:Order {orderkey: $o_orderkey})" +
                     "CREATE (li)-[:has]->(o)";
         System.out.println(s);
         session.run(s,parameters("l_orderkey",l_orderkey,"o_orderkey",o_orderkey));
@@ -274,6 +274,43 @@ public class Neo4j {
         }
         
     }
+
+ static public void query3(Session session, long date1, long date2, String segment) {
+        String query =       		
+        		
+        		"MATCH (l1:LineItem)-[:has]->(o1:Order)-[:has]->(c1:Customer) " +
+                        " WHERE " +
+                        "     l1.shipdate > " + date2 + " AND " +
+                        "     o1.orderdate < " + date1 + "  AND " +
+                        "     c1.mktsegment = '" + segment + "' AND " +
+                        "     o1.orderkey = l1.orderkey  AND " +
+                        " 	  c1.custkey = o1.custkey " +
+                        " WITH " +
+                        "      l1.orderkey AS l_orderkey, " +
+                        "      o1.orderdate AS o_orderdate, " +
+                        "      o1.shippriority AS o_shippriority, " +
+                        "      SUM(l1.extendedPrice*(1-l1.discount)) AS revenue " +
+                        " RETURN " +
+                        "      l_orderkey, " +
+                        "      revenue, " +
+                        "      o_orderdate, " +
+                        "      o_shippriority " +
+                        " ORDER BY " +
+                        "      revenue DESC, " +
+                        "      o_orderdate ASC ";
+        	
+                       
+        
+        
+        StatementResult result = session.run(query);
+     
+        System.out.println("QUERY 3: " + query);
+        
+        while(result.hasNext()) {
+            System.out.println(result.next());
+        }
+        
+    }
     
     public static void main(String[] args) {
 
@@ -284,6 +321,11 @@ public class Neo4j {
         create_graph(session);
         
         query1(session,20180526);
+        System.out.println("FIN1");
+
+        query3(session,20190526,20170526,"aa");
+        System.out.println("FIN3");
+
     }
     
 }
