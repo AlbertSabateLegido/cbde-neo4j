@@ -123,7 +123,7 @@ public class Neo4j {
     
     static void create_join_partsupp_part(Session session, long ps_partkey, long p_partkey) {
     	String s =  "MATCH (ps:Partsupp {partkey: $ps_partkey}), (p:Part {partkey: $p_partkey})" +
-                    "CREATE (ps)-[:has]->(p)";
+                    "CREATE (p)-[:has]->(ps)";
         System.out.println(s);
         session.run(s,parameters("ps_partkey",ps_partkey,"p_partkey",p_partkey));
     }
@@ -158,31 +158,31 @@ public class Neo4j {
         create_lineitem(session, "l5", "F", "R", 10,  65, 20, 10, 20180510, 3,2);
         create_lineitem(session, "l6", "T", "R", 20,  90, 30,  5, 20180510, 3,2);
         
-        create_supplier(session,"s1", 1, 1, 10, "a", "B", 123, "AB");
-        create_supplier(session,"s2", 2, 2, 10, "a", "B", 123, "AB");
-        create_supplier(session,"s3", 3, 2, 10, "a", "B", 123, "AB");
+        create_supplier(session,"s1", 1, 1, 10, "supply_name_1", "B", 123, "comment1");
+        create_supplier(session,"s2", 2, 2, 10, "supply_name_2", "B", 123, "comment2");
+        create_supplier(session,"s3", 3, 2, 10, "supply_name_3", "B", 123, "comment3");
         
-        create_part(session, "p1", 1, "ab", 2, "ab");
-        create_part(session, "p2", 2, "ab", 2, "ab");
-        create_part(session, "p3", 3, "ab", 2, "ab");
+        create_part(session, "p1", 1, "ab", 10, "type");
+        create_part(session, "p2", 2, "ab", 10, "type");
+        create_part(session, "p3", 3, "ab", 10, "type");
         
         create_orders(session, "o1", 1, 20180525, "ab0", 1);
         create_orders(session, "o2", 2, 20180525, "ab0", 1);
         create_orders(session, "o3", 3, 20180510, "ab0", 2);
         
-        create_region(session, "r1", 1, "aba");
-        create_region(session, "r2", 2, "aba");
-        create_region(session, "r3", 3, "aba");
-        create_region(session, "r4", 4, "aba");
+        create_region(session, "r1", 1, "region1");
+        create_region(session, "r2", 2, "region2");
+        create_region(session, "r3", 3, "region3");
+        create_region(session, "r4", 4, "region4");
         
-        create_nation(session, "n1", 1, 1, "bba");
-        create_nation(session, "n2", 1, 2, "bba");
-        create_nation(session, "n3", 3, 3, "bba");
-        create_nation(session, "n4", 4, 4, "bba");
+        create_nation(session, "n1", 1, 1, "nation_name_1");
+        create_nation(session, "n2", 1, 2, "nation_name_2");
+        create_nation(session, "n3", 3, 3, "nation_name_3");
+        create_nation(session, "n4", 4, 4, "nation_name_4");
         
-        create_partsupp(session, "ps1", 1, 1, 1);
-        create_partsupp(session, "ps2", 2, 2, 1);
-        create_partsupp(session, "ps3", 3, 3, 1);
+        create_partsupp(session, "ps1", 1, 1, 20);
+        create_partsupp(session, "ps2", 2, 2, 30);
+        create_partsupp(session, "ps3", 3, 3, 10);
         
         create_customer(session, "c1", 1, 2, "aa");
         create_customer(session, "c2", 2, 1, "aa");
@@ -274,8 +274,50 @@ public class Neo4j {
         }
         
     }
+    
+    static public void query2(Session session, String name, int size,String substring_type) {
+        String query =
+                "MATCH (:Region{name: '" + name + "'})<-[:has]-(n:Nation)<-[:has]-" +
+                "(s:Supplier)<-[:has]-(ps:Partsupp)<-[:has]-(p:Part{size: " + size + "}) " +
+                "WHERE p.type=~ '.*" + substring_type + "*.'" +
+                "WITH MIN(ps.supplycost) AS min_supplycost " +
+                "MATCH (:Region{name: '" + name + "'})<-[:has]-(n:Nation)<-[:has]-" +
+                "(s:Supplier)<-[:has]-(ps:Partsupp{supplycost:min_supplycost})<-[:has]-(p:Part{size: " + size + "}) " +
+                "WHERE p.type=~ '.*" + substring_type + "*.'" +
+                "WITH "
+                + "s.accbal AS s_accbal,"
+                + "s.name AS s_name,"
+                + "n.name AS n_name,"
+                + "p.partkey AS p_partkey,"
+                + "p.mfgr AS p_mfgr,"
+                + "s.adress AS s_adress," 
+                + "s.phone AS s_phone,"
+                + "s.comment AS s_comment " +
+                "RETURN "
+                + "s_accbal,"
+                + "s_name,"
+                + "n_name,"
+                + "p_partkey,"
+                + "p_mfgr,"
+                + "s_adress,"
+                + "s_phone,"
+                + "s_comment " +
+                "ORDER BY "
+                + "s_accbal DESC,"
+                + "s_name ASC,"
+                + "n_name ASC,"
+                + "p_partkey ASC";
+        
+        StatementResult result = session.run(query);
+     
+        System.out.println("QUERY 2: " + query);
+        
+        while(result.hasNext()) {
+            System.out.println(result.next());
+        }
+    }
 
- static public void query3(Session session, long date1, long date2, String segment) {
+    static public void query3(Session session, long date1, long date2, String segment) {
         String query =       		
         		
         		"MATCH (l1:LineItem)-[:has]->(o1:Order)-[:has]->(c1:Customer) " +
@@ -322,6 +364,9 @@ public class Neo4j {
         
         query1(session,20180526);
         System.out.println("FIN1");
+        
+        query2(session,"region1",10,"typ");
+        System.out.println("FIN2");
 
         query3(session,20190526,20170526,"aa");
         System.out.println("FIN3");
