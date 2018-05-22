@@ -7,6 +7,8 @@ package com.mycompany.cbde.neo4j;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +17,7 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
+import static org.neo4j.driver.v1.Values.parameters;
 
 public class Neo4j {
     
@@ -23,144 +26,140 @@ public class Neo4j {
     }
     
     //create a line item node l_returnflag l_linestatus l_quantity l_extendedprice l_discount L_tax l_shipdate l_orderkey
-    static void create_lineitem(Session session, String identifier, String l_returnflag, String l_linestatus, int l_quantity, int l_extendedprice, int l_discount, int l_tax, Date l_shipdate, int l_orderkeyint, int l_suppkey) {
-        String s =  "CREATE (" + identifier + ":LineItem {orderkey: '" + l_orderkeyint +
-        		"', suppkey: '" + l_suppkey + "', returnflag: '" + l_returnflag + "', quantity: '" + l_quantity +
-  	            "', extendedPrice: '" + l_extendedprice + "', discount: '" + l_discount + 
-                    "', tax: '" + l_tax + "', shipdate: '" + l_shipdate + "', linestatus: '" + l_linestatus + "'})";
+    static void create_lineitem(Session session, String identifier, String l_returnflag, String l_linestatus, long  l_quantity, 
+            long l_extendedprice, long l_discount, long l_tax, long l_shipdate, long l_orderkey, long l_suppkey) {
+        String s =  "CREATE (" + identifier + ":LineItem {orderkey:  $orderkey " +
+                    ", suppkey: $suppkey , returnflag: '" + l_returnflag + 
+                    "', quantity: $quantity , extendedPrice: $extendedprice , " +
+                    "discount: $discount , tax: $tax , shipdate: $shipdate ," +
+                    " linestatus: '" + l_linestatus + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("orderkey",l_orderkey,"suppkey",l_suppkey,"quantity",l_quantity,"extendedprice",
+                l_extendedprice,"discount",l_discount,"tax",l_tax,"shipdate",l_shipdate));
     }
 
     //create supplier S_accbal S_name S_address S_phone S_comment s_suppkey s_nationkey
-    static void create_supplier(Session session, String identifier, int s_suppkey, int s_nationkey, int s_accbal, String s_name, String s_address, int s_phone, String s_comment) {
-        String s =  "CREATE (" + identifier + ":Supplier {suppkey:'" + s_suppkey + 
-                "', nationkey: '" + s_nationkey +  "', name: '" + s_name + "', accbal: '" + 
-                s_accbal + "', address: '" + s_address + "', phone: '" + s_phone + 
-                "', comment: '" + s_comment + "'})";
+    static void create_supplier(Session session, String identifier, long s_suppkey, long s_nationkey, long s_accbal, 
+            String s_name, String s_address, long s_phone, String s_comment) {
+        String s =  "CREATE (" + identifier + ":Supplier {suppkey: $suppkey " + 
+                ", nationkey: $nationkey, name: '" + s_name + "', accbal: $accbal " + 
+                ", address: '" + s_address + "', phone: $phone " + 
+                ", comment: '" + s_comment + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("suppkey",s_suppkey,"nationkey",s_nationkey,"accbal",s_accbal,"phone",s_phone));
     }
   	
     //create part table P_partkey P_mfgr P_size P_type 
-    static void create_part(Session session, String identifier, int p_partkey, String p_mfgr, int p_size, String p_type) {
-  	String s =  "CREATE (" + identifier + ":Part {partkey:'" + p_partkey +
-                    "', mfgr:'" + p_mfgr + "', size: '" + p_size + "', type: '" + p_type + "'})";
+    static void create_part(Session session, String identifier, long p_partkey, String p_mfgr, long p_size, String p_type) {
+  	String s =  "CREATE (" + identifier + ":Part {partkey:$partkey " +
+                    ", mfgr:'" + p_mfgr + "', size: $size , type: '" + p_type + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("partkey",p_partkey,"size",p_size));
     }
   	
     //create orders o_orderdate o_shippriority
-    static void create_orders(Session session, String identifier, int o_orderkey, int o_orderdate, String o_shippriority, int o_custkey) {
-  	String s =  "CREATE (" + identifier + ":Order {orderkey: '" + o_orderkey + 
-  			"', custkey: '" + o_custkey +  "', orderdate: '" + o_orderdate + "', shippriority: '" + o_shippriority + "'})";
+    static void create_orders(Session session, String identifier, long o_orderkey, int o_orderdate, String o_shippriority, long o_custkey) {
+  	String s =  "CREATE (" + identifier + ":Order {orderkey: $orderkey " + 
+  			", custkey: $custkey , orderdate: '" + o_orderdate + "', shippriority: '" + o_shippriority + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("orderkey",o_orderkey,"custkey",o_custkey));
     }
   	
     //create region r_name
-    static void create_region(Session session, String identifier, int r_regionkey, String r_name) {
-        String s =  "CREATE (" + identifier + ":Region {regionkey: '" + r_regionkey + "', name: '" + r_name + "'})";
+    static void create_region(Session session, String identifier, long r_regionkey, String r_name) {
+        String s =  "CREATE (" + identifier + ":Region {regionkey: $regionkey , name: '" + r_name + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("regionkey",r_regionkey));
     }
   	
     //create nation n_name n_nationkey n_regionkey
-    static void create_nation(Session session, String identifier, int n_regionkey, int n_nationkey, String n_name) {
-        String s =  "CREATE (" + identifier + ":Nation {regionkey: '" + n_regionkey + 
-                    "', nationkey: '" + n_nationkey + "', name: '" + n_name + "'})";
+    static void create_nation(Session session, String identifier, long n_regionkey, long n_nationkey, String n_name) {
+        String s =  "CREATE (" + identifier + ":Nation {regionkey: $regionkey" +
+                    ", nationkey: $nationkey, name: '" + n_name + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("regionkey",n_regionkey,"nationkey",n_nationkey));
     }
   	
     // create partsupp ps_supplycost ps_partkey ps_suppkey
-    static void create_partsupp(Session session, String identifier, int ps_partkey, int ps_suppkey, int ps_supplycost) {
-        String s =  "CREATE (" + identifier + ":Partsupp {partkey: '" + ps_partkey + 
-                "', suppkey: '" + ps_suppkey + "', supplycost: '" + ps_supplycost + "'})";
+    static void create_partsupp(Session session, String identifier, long ps_partkey, long ps_suppkey, long ps_supplycost) {
+        String s =  "CREATE (" + identifier + ":Partsupp {partkey: $partkey" + 
+                ", suppkey: $suppkey, supplycost: $supplycost})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("partkey",ps_partkey,"suppkey",ps_suppkey,"supplycost",ps_supplycost));
     }
   	
     //create customer C_mktsegment c_custkey
-    static void create_customer(Session session, String identifier, int c_custkey, int c_nationkey, String c_mktsegment) {
-        String s =  "CREATE (" + identifier + ":Customer {custkey: '" + 
-                    c_custkey + "', c_nationkey:'" + c_nationkey +"', mktsegment: '" + c_mktsegment + "'})";
+    static void create_customer(Session session, String identifier, long c_custkey, long c_nationkey, String c_mktsegment) {
+        String s =  "CREATE (" + identifier + ":Customer {custkey: $custkey" +
+                ", nationkey: $nationkey, mktsegment: '" + c_mktsegment + "'})";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("custkey",c_custkey,"nationkey",c_nationkey));
     }
     
-    static void create_join_nation_region(Session session, String region, String nation, int n_regionkey, int r_regionkey) {
-    	String s =  "MATCH (" + region + ":Region {regionkey: '" + r_regionkey + "'}), (" + nation +
-                 ":Nation {regionkey: '" + n_regionkey + "'}) CREATE (" + nation + ")-[:has]->(" + region + ")";
+    static void create_join_nation_region(Session session, long n_regionkey, long r_regionkey) {
+    	String s =  "MATCH (r:Region {regionkey: $n_regionkey}), (n:Nation {regionkey: $n_regionkey})" +
+                "CREATE (n)-[:has]->(r)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("n_regionkey",n_regionkey,"r_regionkey",r_regionkey));
     }
     
-    static void create_join_supplier_nation(Session session, String supplier, String nation, int s_nationkey, int n_nationkey) {
-    	String s =  "MATCH (" + supplier + ":Supplier {nationkey: '" + s_nationkey + "'}), (" + nation +
-                ":Nation {nationkey: '" + n_nationkey + "'}) CREATE (" + supplier + ")-[:has]->(" + nation + ")";
+    static void create_join_supplier_nation(Session session,long s_nationkey, long n_nationkey) {
+    	String s =  "MATCH (s:Supplier {nationkey: $s_nationkey}), (n:Nation {nationkey: $n_nationkey})" + 
+                    "CREATE (s)-[:has]->(n)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("s_nationkey",s_nationkey,"n_nationkey",n_nationkey));
     }
     
-    static void create_join_nation_customer(Session session, String nation, String customer, int n_nationkey, int c_nationkey) {
-    	String s =  "MATCH (" + customer + ":Customer {nationkey: '" + c_nationkey + "'}), (" + nation +
-                ":Nation {nationkey: '" + n_nationkey + "'}) CREATE (" + customer + ")-[:has]->(" + nation + ")";
+    static void create_join_nation_customer(Session session, long n_nationkey, long c_nationkey) {
+    	String s =  "MATCH (c:Customer {nationkey: $c_nationkey}), (n:Nation {nationkey: $n_nationkey})" +
+                    "CREATE (c)-[:has]->(n)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("c_nationkey",c_nationkey,"n_nationkey",n_nationkey));
     }
     
-    static void create_join_supplier_partsupplier(Session session, String supplier, String partsupp, int s_suppkey, int ps_suppkey) {
-    	String s =  "MATCH (" + partsupp + ":Partsupp {suppkey: '" + ps_suppkey + "'}), (" + supplier +
-                ":Supplier {suppkey: '" + s_suppkey + "'}) CREATE (" + partsupp + ")-[:has]->(" + supplier + ")";
+    static void create_join_supplier_partsupplier(Session session, long s_suppkey, long ps_suppkey) {
+    	String s =  "MATCH (ps:Partsupp {suppkey: $ps_suppkey}), (s:Supplier {suppkey: $s_suppkey})" + 
+                    "CREATE (ps)-[:has]->(s)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("s_suppkey",s_suppkey,"ps_suppkey",ps_suppkey));
     }
     
-    static void create_join_partsupp_part(Session session, String partsupp, String part, int ps_partkey, int p_partkey) {
-    	String s =  "MATCH (" + partsupp + ":Partsupp {partkey: '" + ps_partkey + "'}), (" + part +
-                ":Part {partkey: '" + p_partkey + "'}) CREATE (" + partsupp + ")-[:has]->(" + part + ")";
+    static void create_join_partsupp_part(Session session, long ps_partkey, long p_partkey) {
+    	String s =  "MATCH (ps:Partsupp {partkey: $ps_partkey}), (p:Part {partkey: $p_partkey})" +
+                    "CREATE (ps)-[:has]->(p)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("ps_partkey",ps_partkey,"p_partkey",p_partkey));
     }
     
-    static void create_join_supplier_lineitem(Session session, String supplier, String lineitem, int l_suppkey, int s_suppkey) {
-    	String s =  "MATCH (" + lineitem + ":Lineitem {suppkey: '" + l_suppkey + "'}), (" + supplier +
-                ":Supplier {suppkey: '" + s_suppkey + "'}) CREATE (" + lineitem + ")-[:has]->(" + supplier + ")";
+    static void create_join_supplier_lineitem(Session session, long l_suppkey, long s_suppkey) {
+    	String s =  "MATCH (li:Lineitem {suppkey: $l_suppkey}), (s:Supplier {suppkey: $s_suppkey})" +
+                    "CREATE (li)-[:has]->(s)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("l_suppkey",l_suppkey,"s_suppkey",s_suppkey));
     }
     
-    static void create_join_lineitem_order(Session session, String lineitem, String order, int l_orderkey, int o_orderkey) {
-    	String s =  "MATCH (" + lineitem + ":Lineitem {orderkey: '" + l_orderkey + "'}), (" + order +
-                ":Order {orderkey: '" + o_orderkey + "'}) CREATE (" + lineitem + ")-[:has]->(" + order + ")";
+    static void create_join_lineitem_order(Session session, long l_orderkey, long o_orderkey) {
+    	String s =  "MATCH (li:Lineitem {orderkey: $l_orderkey}), (o:Order {orderkey: $o_orderkey})" +
+                    "CREATE (li)-[:has]->(o)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("l_orderkey",l_orderkey,"o_orderkey",o_orderkey));
     }
     
-    static void create_join_order_customer(Session session, String order, String customer, int o_custkey, int c_custkey) {
-        String s =  "MATCH (" + order + ":Order {custkey: '" + o_custkey + "'}), (" + customer +
-                ":Customer {custkey: '" + c_custkey + "'}) CREATE (" + order + ")-[:has]->(" + customer + ")";
+    static void create_join_order_customer(Session session, long o_custkey, long c_custkey) {
+        String s =  "MATCH (o:Order {custkey: $o_custkey}), (c:Customer {custkey: $c_custkey})" +
+                    "CREATE (o)-[:has]->(c)";
         System.out.println(s);
-        session.run(s);
+        session.run(s,parameters("o_custkey",o_custkey,"c_custkey",c_custkey));
     }
     static void create_graph(Session session) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date d1 = new Date();
-        Date d2 = new Date();
-        try {
-            d1 = sdf.parse("2018-05-26");
-            d2 = sdf.parse("2018-05-10");
-        } catch (ParseException ex) {
-            Logger.getLogger(Neo4j.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
-        create_lineitem(session, "l1", "T", "R", 10, 105, 30,  5, d1, 1,1);
-        create_lineitem(session, "l2", "T", "S", 40,  50, 15, 10, d1, 1,1);
-        create_lineitem(session, "l3", "F", "R", 20,  75, 10, 10, d1, 2,1);
-        create_lineitem(session, "l4", "T", "S", 30,  80, 15,  5, d2, 2,2);
-        create_lineitem(session, "l5", "F", "R", 10,  65, 20, 10, d2, 3,2);
-        create_lineitem(session, "l6", "T", "R", 20,  90, 30,  5, d2, 3,2);
+        create_lineitem(session, "l1", "T", "R", 10, 105, 30,  5, 20180525, 1,1);
+        create_lineitem(session, "l2", "T", "S", 40,  50, 15, 10, 20180525, 1,1);
+        create_lineitem(session, "l3", "F", "R", 20,  75, 10, 10, 20180525, 2,1);
+        create_lineitem(session, "l4", "T", "S", 30,  80, 15,  5, 20180510, 2,2);
+        create_lineitem(session, "l5", "F", "R", 10,  65, 20, 10, 20180510, 3,2);
+        create_lineitem(session, "l6", "T", "R", 20,  90, 30,  5, 20180510, 3,2);
         
         create_supplier(session,"s1", 1, 1, 10, "a", "B", 123, "AB");
         create_supplier(session,"s2", 2, 2, 10, "a", "B", 123, "AB");
@@ -193,58 +192,58 @@ public class Neo4j {
         create_customer(session, "c3", 3, 3, "aa");
         create_customer(session, "c4", 4, 4, "aa");
 
-	create_join_nation_region(session, "r1", "n1", 1, 1);
-        create_join_nation_region(session, "r1", "n2", 1, 1);
-        create_join_nation_region(session, "r3", "n3", 3, 3);
-        create_join_nation_region(session, "r4", "n4", 4, 4);
+	create_join_nation_region(session, 1, 1);
+        create_join_nation_region(session, 1, 1);
+        create_join_nation_region(session, 3, 3);
+        create_join_nation_region(session, 4, 4);
         
-        create_join_supplier_nation(session, "s1", "n1", 1, 1);
-        create_join_supplier_nation(session, "s2", "n2", 2, 2);
-        create_join_supplier_nation(session, "s3", "n2", 2, 2);
+        create_join_supplier_nation(session, 1, 1);
+        create_join_supplier_nation(session, 2, 2);
+        create_join_supplier_nation(session, 2, 2);
         
-        create_join_nation_customer(session, "n1", "c2", 1, 1);
-        create_join_nation_customer(session, "n2", "c1", 2, 2);
-        create_join_nation_customer(session, "n3", "c3", 3, 3);
-        create_join_nation_customer(session, "n4", "c4", 4, 4);
+        create_join_nation_customer(session, 1, 1);
+        create_join_nation_customer(session, 2, 2);
+        create_join_nation_customer(session, 3, 3);
+        create_join_nation_customer(session, 4, 4);
         
-       create_join_supplier_partsupplier(session, "s1", "ps1", 1, 1);
-       create_join_supplier_partsupplier(session, "s2", "ps2", 2, 2);
-       create_join_supplier_partsupplier(session, "s3", "ps3", 3, 3);
+       create_join_supplier_partsupplier(session, 1, 1);
+       create_join_supplier_partsupplier(session, 2, 2);
+       create_join_supplier_partsupplier(session, 3, 3);
        
-       create_join_partsupp_part(session, "ps1", "p1", 1, 1);
-       create_join_partsupp_part(session, "ps2", "p2", 2, 2);
-       create_join_partsupp_part(session, "ps3", "p3", 3, 3);
+       create_join_partsupp_part(session, 1, 1);
+       create_join_partsupp_part(session, 2, 2);
+       create_join_partsupp_part(session, 3, 3);
        
-       create_join_supplier_lineitem(session, "s1", "l1", 1, 1);
-       create_join_supplier_lineitem(session, "s1", "l2", 1, 1);
-       create_join_supplier_lineitem(session, "s2", "l3", 2, 2);
-       create_join_supplier_lineitem(session, "s2", "l4", 2, 2);
-       create_join_supplier_lineitem(session, "s3", "l5", 3, 3);
-       create_join_supplier_lineitem(session, "s3", "l6", 3, 3);
+       create_join_supplier_lineitem(session, 1, 1);
+       create_join_supplier_lineitem(session, 1, 1);
+       create_join_supplier_lineitem(session, 2, 2);
+       create_join_supplier_lineitem(session, 2, 2);
+       create_join_supplier_lineitem(session, 3, 3);
+       create_join_supplier_lineitem(session, 3, 3);
        
-       create_join_lineitem_order(session, "l1", "o1", 1, 1);
-       create_join_lineitem_order(session, "l2", "o1", 1, 1);
-       create_join_lineitem_order(session, "l3", "o2", 2, 2);
-       create_join_lineitem_order(session, "l4", "o2", 2, 2);
-       create_join_lineitem_order(session, "l5", "o3", 3, 3);
-       create_join_lineitem_order(session, "l6", "o3", 3, 3);
+       create_join_lineitem_order(session, 1, 1);
+       create_join_lineitem_order(session, 1, 1);
+       create_join_lineitem_order(session, 2, 2);
+       create_join_lineitem_order(session, 2, 2);
+       create_join_lineitem_order(session, 3, 3);
+       create_join_lineitem_order(session, 3, 3);
        
-       create_join_order_customer(session, "o1", "c1", 1, 1);
-       create_join_order_customer(session, "o2", "c1", 1, 1);
-       create_join_order_customer(session, "o3", "c2", 2, 2);
+       create_join_order_customer(session, 1, 1);
+       create_join_order_customer(session, 1, 1);
+       create_join_order_customer(session, 2, 2);
 
       
     }
     
-    static public void query1(Session session, Date date) {
+    static public void query1(Session session, long date) {
         String query =
                 "MATCH (li:LineItem) " +
                     " WHERE " +
-                        "li.shipdate <= " + date +
+                        "li.shipdate <= $date " +
                     " WITH " +
                         " li.returnflag AS l_returnflag, " +
                         " li.linestatus AS l_linestatus, " +
-                        //" SUM(li.quantity) AS sum_qty, " +
+                        " SUM(li.quantity) AS sum_qty, " +
                         //" SUM(li.extendedPrice) AS sum_base_price, " +
                         //" SUM(li.extendedPrice*(1-li.discount)) AS sum_disc_price, " +
                         //" SUM(li.extendedPrice*(1-li.discount)*(1+li.tax)) AS sum_charge, " +
@@ -255,7 +254,7 @@ public class Neo4j {
                     " RETURN " +
                         " l_returnflag, " +
                         " l_linestatus, " +
-                        //" sum_qty, " +
+                        " sum_qty, " +
                         //" sum_base_price, " +
                         //" sum_disc_price, " +
                         //" sum_charge, " +
@@ -268,7 +267,7 @@ public class Neo4j {
                         " l_linestatus ASC ";
         
         
-        StatementResult result = session.run(query);
+        StatementResult result = session.run(query,parameters("date",date));
      
         System.out.println("QUERY 1: " + query);
         while(result.hasNext()) {
@@ -283,17 +282,8 @@ public class Neo4j {
         
         delete_graph(session); 
         create_graph(session);
-         
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date d = new Date();
-        try { 
-            d = sdf.parse("2018-05-26"); 
-        }
-        catch (ParseException ex) {
-            Logger.getLogger(Neo4j.class.getName()).log(Level.SEVERE, null, ex); 
-        }
         
-        query1(session,d);
+        query1(session,20180526);
 
     }
     
