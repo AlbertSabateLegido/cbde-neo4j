@@ -281,7 +281,7 @@ public class Neo4j {
     
     public static void main(String[] args) {
 
-        Driver driver =  GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j","Mocolandia96."));
+        Driver driver =  GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j","cbde"));
         Session session = driver.session();
         
         delete_graph(session); 
